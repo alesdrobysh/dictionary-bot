@@ -1,14 +1,15 @@
 package dictionarybot
 
-import cats.syntax.functor._
 import cats.syntax.flatMap._
+import cats.syntax.functor._
 import cats.effect.{Async, ContextShift, Timer}
 import com.bot4s.telegram.api.declarative.Commands
 import com.bot4s.telegram.cats.Polling
-import io.circe.Json
+import dictionarybot.model._
+import Decoders._
 import org.http4s._
-import org.http4s.circe._
 import org.http4s.client.Client
+import org.http4s.circe.CirceEntityDecoder._
 
 class DictionaryBot[F[_]: Async: Timer: ContextShift](
   token: String,
@@ -17,6 +18,7 @@ class DictionaryBot[F[_]: Async: Timer: ContextShift](
 ) extends Bot[F](token)
     with Polling[F]
     with Commands[F] {
+
   onCommand("/search") { implicit msg =>
     withArgs { args =>
       {
@@ -30,10 +32,11 @@ class DictionaryBot[F[_]: Async: Timer: ContextShift](
         client.toHttpApp
           .run(request)
           .flatMap(
-            _.as[Json]
-              .flatMap(json => reply(json.spaces2))
+            _.as[DictionaryRecord]
+              .flatMap(record => reply(record.toString))
           )
           .void
+
       }
     }
   }
