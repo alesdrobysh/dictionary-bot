@@ -1,10 +1,10 @@
 package dictionarybot
 
-import cats.syntax.flatMap._
-import cats.syntax.functor._
 import cats.effect.{Async, ContextShift, Timer}
+import cats.implicits._
 import com.bot4s.telegram.api.declarative.Commands
 import com.bot4s.telegram.cats.Polling
+import com.bot4s.telegram.methods.ParseMode
 import dictionarybot.model._
 import Decoders._
 import org.http4s._
@@ -33,7 +33,7 @@ class DictionaryBot[F[_]: Async: Timer: ContextShift](
           .run(request)
           .flatMap(
             _.as[DictionaryRecord]
-              .flatMap(record => reply(record.toString))
+              .flatMap(record => reply(record.toMarkdown, ParseMode.Markdown.some))
           )
           .void
 
