@@ -1,0 +1,17 @@
+bin/
+target/
+build/
+
+*.log
+*.iml
+*.ipr
+*.iws
+.idea
+
+.history
+.scala_dependencies
+.cache
+.cache-main
+
+*.class
+Test.scala
