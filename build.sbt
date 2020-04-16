@@ -13,6 +13,7 @@ scalacOptions ++= Seq(
 val catsVersion = "2.1.0"
 val http4sVersion = "0.20.21"
 val circeVersion = "0.11.2"
+val scalaCacheVersion = "0.28.0"
 
 libraryDependencies ++= Seq(
   compilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full),
@@ -25,5 +26,7 @@ libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-circe" % http4sVersion,
   "io.circe" %% "circe-generic" % circeVersion,
   "io.circe" %% "circe-core" % circeVersion,
-  "io.circe" %% "circe-parser" % circeVersion
+  "io.circe" %% "circe-parser" % circeVersion,
+  "com.github.cb372" %% "scalacache-memcached" % scalaCacheVersion,
+  "com.github.cb372" %% "scalacache-cats-effect" % scalaCacheVersion
 )

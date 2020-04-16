@@ -2,13 +2,13 @@ package dictionarybot.model
 
 case class DictionaryRecord(
   word: String,
-  pronunciation: String,
+  pronunciation: Option[String],
   definitions: List[Definition]
 ) {
   def toMarkdown: String =
     s"""
        |*$word*
-       |_/$pronunciation/_
+       |${pronunciation.map(p => s"_/$p/_").getOrElse("")}
        |${definitions.map(_.toMarkdown).mkString("")}
        |""".stripMargin
 }

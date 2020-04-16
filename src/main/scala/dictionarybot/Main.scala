@@ -8,17 +8,20 @@ object Main extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
     val botToken = System.getenv("BOT_TOKEN")
     val dictionaryApiKey = System.getenv("DICTIONARY_API_KEY")
+    val cacheAddress = System.getenv("CACHE_ADDRESS")
 
-    if (botToken != null && dictionaryApiKey != null) {
+    if (botToken != null && dictionaryApiKey != null && cacheAddress != null) {
       BlazeClientBuilder[IO](global).resource
         .use { client =>
           {
+            val cache = new DictionaryCache[IO](cacheAddress)
             val api = new DictionaryApi[IO](client, dictionaryApiKey)
-            new DictionaryBot[IO](botToken, api).startPolling.attempt
+            new DictionaryBot[IO](botToken, api, cache).startPolling.attempt
               .map(println(_))
           }
         }
         .map(_ => ExitCode.Success)
-    } else IO.raiseError(new Exception("No bot token or dictionary api key"))
+    } else
+      IO.raiseError(new Exception("No bot token, dictionary api key or cache address provided"))
   }
 }
