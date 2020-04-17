@@ -22,38 +22,40 @@ class DictionaryBot[F[_]: Async: Timer: ContextShift](
 
   onCommand("/search") { implicit msg =>
     withArgs { args =>
-      args.headOption match {
-        case Some(word) =>
-          search(word)
-            .flatMap(getResponse(_))
-            .flatMap(reply(_, ParseMode.Markdown.some))
-            .map(_ => ())
-
-        case None => reply("""Usage: "/search word"""").void
-      }
+      args.headOption
+        .map(handleRequest)
+        .getOrElse(handleEmptyRequest)
+        .flatMap(reply(_, ParseMode.Markdown.some))
+        .void
     }
   }
 
-  private def search(word: String): F[Either[ApiError, F[DictionaryRecord]]] =
+  def handleRequest(word: String): F[String] =
+    for {
+      searchResult <- search(word)
+      response = searchResult2response(searchResult)
+    } yield response
+
+  def handleEmptyRequest: F[String] = """Usage: "/search word"""".pure[F]
+
+  private def search(word: String): F[Either[ApiError, DictionaryRecord]] =
     cache.get(word).flatMap {
       case Right(record) =>
-        record.pure[F].asRight[ApiError].pure[F]
+        record.asRight[ApiError].pure[F]
       case Left(CacheError.NotCached(word)) =>
         api
           .search(word)
-          .map(
-            _.map(
+          .flatMap(
+            _.traverse(
               _.as[DictionaryRecord]
                 .flatMap { record => cache.set(record.word, record).map(_ => record) }
             )
           )
     }
 
-  private def getResponse(input: Either[ApiError, F[DictionaryRecord]]): F[String] =
-    input match {
-      case Left(ApiError.NotFound(word)) => s"_${word}_ not found".pure[F]
-      case Left(ApiError.UnexpectedError) =>
-        "Oops... Something went wrong. Please retry.".pure[F]
-      case Right(record) => record.map(_.toMarkdown)
-    }
+  private val searchResult2response: Either[ApiError, DictionaryRecord] => String = {
+    case Left(ApiError.NotFound(word)) => s"_${word}_ not found"
+    case Left(ApiError.UnexpectedError) => "Oops... Something went wrong. Please retry."
+    case Right(record) => record.toMarkdown
+  }
 }
