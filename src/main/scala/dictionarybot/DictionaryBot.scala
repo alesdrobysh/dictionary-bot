@@ -11,7 +11,7 @@ class DictionaryBot[F[_]: Async: Timer: ContextShift](
   token: String,
   api: DictionaryApi[F],
   cache: DictionaryCache[F]
-) extends Bot[F](token)
+) extends AbstractBot[F](token)
     with Polling[F]
     with Commands[F] {
 
