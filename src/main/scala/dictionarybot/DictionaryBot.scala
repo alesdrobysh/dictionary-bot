@@ -25,7 +25,7 @@ class DictionaryBot[F[_]: Async: Timer: ContextShift](
       args.headOption
         .map(handleRequest)
         .getOrElse(handleEmptyRequest)
-        .flatMap(reply(_, ParseMode.Markdown.some))
+        .flatMap(reply(_, ParseMode.HTML.some))
         .void
     }
   }
@@ -54,8 +54,8 @@ class DictionaryBot[F[_]: Async: Timer: ContextShift](
     }
 
   private val searchResult2response: Either[ApiError, DictionaryRecord] => String = {
-    case Left(ApiError.NotFound(word)) => s"_${word}_ not found"
+    case Left(ApiError.NotFound(word)) => s"<i>${word}</i> not found"
     case Left(ApiError.UnexpectedError) => "Oops... Something went wrong. Please retry."
-    case Right(record) => record.toMarkdown
+    case Right(record) => record.toHtml
   }
 }

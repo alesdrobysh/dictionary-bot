@@ -5,10 +5,10 @@ case class DictionaryRecord(
   pronunciation: Option[String],
   definitions: List[Definition]
 ) {
-  def toMarkdown: String =
+  def toHtml: String =
     s"""
-       |*$word*
-       |${pronunciation.map(p => s"_/$p/_").getOrElse("")}
-       |${definitions.map(_.toMarkdown).mkString("")}
+       |<b>$word</b>
+       |${pronunciation.map(p => s"<i>/$p/</i>").getOrElse("")}
+       |${definitions.map(_.toHtml).mkString("")}
        |""".stripMargin
 }

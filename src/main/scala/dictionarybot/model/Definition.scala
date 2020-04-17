@@ -9,18 +9,18 @@ case class Definition(
   imageUrl: Option[String],
   emoji: Option[String]
 ) {
-  def toMarkdown: String =
+  def toHtml: String =
     s"""
-       |_${partOfSpeech}_
+       |<i>${partOfSpeech}</i>
        |$definition ${emoji.getOrElse("")}
-       |${exampleMarkdownOption.getOrElse("")}
+       |${exampleHtmlOption.getOrElse("")}
        |""".stripMargin
 
-  private def exampleMarkdownOption: Option[String] = example match {
+  private def exampleHtmlOption: Option[String] = example match {
     case Some(value) =>
       s"""
          |
-         |_"$value"_
+         |<i>"$value"</i>
          |""".some
     case None => None
   }
