@@ -16,7 +16,7 @@ class DictionaryApi[F[_]: Applicative](
 
   def search(
     word: String
-  ): EitherT[F, ApiError, Response[F]] = {
+  ): ApiResponse[F, Response[F]] = {
     val request = Request[F](
       method = Method.GET,
       uri = root / word +? ("format", "json"),
@@ -43,4 +43,6 @@ object DictionaryApi {
     case class NotFound(word: String) extends ApiError
     case object UnexpectedError extends ApiError
   }
+
+  type ApiResponse[F[_], T] = EitherT[F, ApiError, T]
 }

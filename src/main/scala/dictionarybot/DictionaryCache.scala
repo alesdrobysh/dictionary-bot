@@ -1,25 +1,21 @@
 package dictionarybot
 
 import cats.effect.Async
-import cats.implicits._
+import dictionarybot.DictionaryApi.ApiResponse
 import dictionarybot.model.DictionaryRecord
-import scalacache.{Cache, get => getCache, put => putCache}
+import scalacache.{Cache, cachingF}
 import scalacache.memcached._
 import scalacache.serialization.binary._
 import scalacache.Mode
 
 class DictionaryCache[F[_]: Async](cacheAddress: String) {
-  import DictionaryCache._
+  type ApiResponseF[V] = ApiResponse[F, V]
 
   implicit val memcachedCache: Cache[DictionaryRecord] = MemcachedCache(cacheAddress)
-  implicit val mode: Mode[F] = scalacache.CatsEffect.modes.async[F]
+  implicit val mode: Mode[ApiResponseF] = scalacache.CatsEffect.modes.async[ApiResponseF]
 
-  def set(word: String, record: DictionaryRecord): F[Any] = putCache(word)(record)
-
-  def get(word: String): F[Either[CacheError, DictionaryRecord]] =
-    getCache(word).map {
-      _.toRight[CacheError](CacheError.NotCached(word))
-    }
+  def withCache(word: String)(f: ApiResponseF[DictionaryRecord]) =
+    cachingF[ApiResponseF, DictionaryRecord](word)(ttl = None)(f)
 }
 
 object DictionaryCache {

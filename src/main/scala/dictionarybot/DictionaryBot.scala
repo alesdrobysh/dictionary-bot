@@ -17,8 +17,7 @@ class DictionaryBot[F[_]: Async: Timer: ContextShift](
 
   import dictionarybot.model._
   import dictionarybot.model.Decoders._
-  import DictionaryCache.CacheError
-  import DictionaryApi.ApiError
+  import DictionaryApi._
 
   onCommand("/search") { implicit msg =>
     withArgs { args =>
@@ -40,18 +39,17 @@ class DictionaryBot[F[_]: Async: Timer: ContextShift](
   def handleEmptyRequest: F[String] = """Usage: "/search word"""".pure[F]
 
   private def search(word: String): F[Either[ApiError, DictionaryRecord]] =
-    cache.get(word).flatMap {
-      case Right(record) =>
-        record.asRight[ApiError].pure[F]
-      case Left(CacheError.NotCached(word)) =>
-        api
-          .search(word)
-          .flatMap(_.attemptAs[DictionaryRecord].leftMap(decodeFailure => {
-            println(decodeFailure.toString)
-            ApiError.UnexpectedError.asInstanceOf[ApiError]
-          }))
-          .value
-    }
+    cache
+      .withCache(word)(searchApi(word))
+      .value
+
+  private def searchApi(word: String): ApiResponse[F, DictionaryRecord] =
+    api
+      .search(word)
+      .flatMap(_.attemptAs[DictionaryRecord].leftMap(decodeFailure => {
+        println(decodeFailure.toString)
+        ApiError.UnexpectedError.asInstanceOf[ApiError]
+      }))
 
   private val searchResult2response: Either[ApiError, DictionaryRecord] => String = {
     case Left(ApiError.NotFound(word)) => s"<i>$word</i> not found"
