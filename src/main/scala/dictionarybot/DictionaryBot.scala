@@ -45,16 +45,15 @@ class DictionaryBot[F[_]: Async: Timer: ContextShift](
       case Left(CacheError.NotCached(word)) =>
         api
           .search(word)
-          .flatMap(
-            _.traverse(
-              _.as[DictionaryRecord]
-                .flatMap { record => cache.set(record.word, record).map(_ => record) }
-            )
-          )
+          .flatMap(_.attemptAs[DictionaryRecord].leftMap(decodeFailure => {
+            println(decodeFailure.toString)
+            ApiError.UnexpectedError.asInstanceOf[ApiError]
+          }))
+          .value
     }
 
   private val searchResult2response: Either[ApiError, DictionaryRecord] => String = {
-    case Left(ApiError.NotFound(word)) => s"<i>${word}</i> not found"
+    case Left(ApiError.NotFound(word)) => s"<i>$word</i> not found"
     case Left(ApiError.UnexpectedError) => "Oops... Something went wrong. Please retry."
     case Right(record) => record.toHtml
   }

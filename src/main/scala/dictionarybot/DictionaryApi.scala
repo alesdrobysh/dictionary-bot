@@ -1,6 +1,7 @@
 package dictionarybot
 
 import cats.Applicative
+import cats.data.EitherT
 import cats.implicits._
 import org.http4s._
 import org.http4s.client.Client
@@ -13,22 +14,26 @@ class DictionaryApi[F[_]: Applicative](
 
   import dictionarybot.DictionaryApi._
 
-  def search(word: String): F[Either[ApiError, Response[F]]] = {
+  def search(
+    word: String
+  ): EitherT[F, ApiError, Response[F]] = {
     val request = Request[F](
       method = Method.GET,
       uri = root / word +? ("format", "json"),
       headers = Headers.of(Header("Authorization", s"Token $apiKey"))
     )
 
-    client.toHttpApp
-      .run(request)
-      .map { response: Response[F] =>
-        response.status match {
-          case Status.Ok => Right(response)
-          case Status.NotFound => Left(ApiError.NotFound(word))
-          case _ => Left(ApiError.UnexpectedError)
+    EitherT {
+      client.toHttpApp
+        .run(request)
+        .map { response: Response[F] =>
+          response.status match {
+            case Status.Ok => Right(response)
+            case Status.NotFound => Left(ApiError.NotFound(word))
+            case _ => Left(ApiError.UnexpectedError)
+          }
         }
-      }
+    }
   }
 }
 
