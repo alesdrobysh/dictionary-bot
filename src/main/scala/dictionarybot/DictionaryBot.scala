@@ -27,6 +27,7 @@ class DictionaryBot[F[_]: Async: Timer: ContextShift](
         .getOrElse(handleEmptyRequest)
         .flatMap(reply(_, ParseMode.HTML.some))
         .void
+        .onError({ case error => println(error).pure[F] })
     }
   }
 
