@@ -13,12 +13,9 @@ object Main extends IOApp {
     if (botToken != null && dictionaryApiKey != null && cacheAddress != null) {
       BlazeClientBuilder[IO](global).resource
         .use { client =>
-          {
-            val cache = new DictionaryCache[IO](cacheAddress)
-            val api = new DictionaryApi[IO](client, dictionaryApiKey)
-            new DictionaryBot[IO](botToken, api, cache).startPolling.attempt
-              .map(println(_))
-          }
+          val cache = new DictionaryCache[IO](cacheAddress)
+          val api = new DictionaryApi[IO](client, dictionaryApiKey)
+          new DictionaryBot[IO](botToken, api, cache).startPolling
         }
         .map(_ => ExitCode.Success)
     } else
