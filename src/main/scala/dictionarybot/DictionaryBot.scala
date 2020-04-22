@@ -24,9 +24,9 @@ class DictionaryBot[F[_]: Async: Timer: ContextShift](
       args.headOption
         .map(handleRequest)
         .getOrElse(handleEmptyRequest)
+        .onError({ case error => logger.error(error.toString).pure[F] })
         .flatMap(reply(_, ParseMode.HTML.some))
         .void
-        .onError({ case error => println(error).pure[F] })
     }
   }
 
@@ -47,7 +47,7 @@ class DictionaryBot[F[_]: Async: Timer: ContextShift](
     api
       .search(word)
       .flatMap(_.attemptAs[DictionaryRecord].leftMap(decodeFailure => {
-        println(decodeFailure.toString)
+        logger.error(decodeFailure.toString)
         ApiError.UnexpectedError.asInstanceOf[ApiError]
       }))
 

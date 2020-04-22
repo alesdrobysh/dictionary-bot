@@ -13,6 +13,7 @@ scalacOptions ++= Seq(
 val catsVersion = "2.1.0"
 val http4sVersion = "0.20.21"
 val circeVersion = "0.11.2"
+val slf4jVersion = "1.7.5"
 val scalaCacheVersion = "0.28.0"
 
 libraryDependencies ++= Seq(
@@ -28,5 +29,6 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-core" % circeVersion,
   "io.circe" %% "circe-parser" % circeVersion,
   "com.github.cb372" %% "scalacache-memcached" % scalaCacheVersion,
-  "com.github.cb372" %% "scalacache-cats-effect" % scalaCacheVersion
+  "com.github.cb372" %% "scalacache-cats-effect" % scalaCacheVersion,
+  "biz.enef" %% "slogging" % "0.6.1"
 )
