@@ -17,10 +17,3 @@ class DictionaryCache[F[_]: Async](cacheAddress: String) {
   def withCache(word: String)(f: ApiResponseF[DictionaryRecord]) =
     cachingF[ApiResponseF, DictionaryRecord](word)(ttl = None)(f)
 }
-
-object DictionaryCache {
-  sealed trait CacheError
-  object CacheError {
-    case class NotCached(word: String) extends CacheError
-  }
-}
